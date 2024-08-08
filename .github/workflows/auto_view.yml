@@ -1,0 +1,43 @@
+name: Auto Website View
+
+on:
+  schedule:
+    - cron: '0 */2 * * *'  # Run every 2 hours (adjust as needed)
+
+jobs:
+  auto_view:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x' 
+
+    - name: Install dependencies
+      run: |
+        pip install selenium
+
+    - name: Install Chrome
+      run: |
+        wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+        sudo apt install ./google-chrome-stable_current_amd64.deb
+
+    - name: Install ChromeDriver
+      run: |
+        CHROME_DRIVER_VERSION=`curl -sS https://chromedriver.storage.googleapis.com/LATEST_RELEASE`
+        wget -N https://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriver_linux64.zip -P ~/
+        unzip ~/chromedriver_linux64.zip -d ~/
+        chmod +x ~/chromedriver
+        sudo mv -f ~/chromedriver /usr/local/bin/chromedriver
+
+    - name: Run script
+      env: 
+        DISPLAY: ':99'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y xvfb
+        Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+        python auto_view.py 
